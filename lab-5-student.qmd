@@ -56,8 +56,28 @@ Detective Wickham reaches out to you...
 
 ```{r}
 #| label: inspecting-crime-scene-report
+crime_scene_report <- crime_scene_report |>
+  filter(city == "SQL City",
+         type == "murder")
 
+facebook_event_checkin <- facebook_event_checkin |>
+  filter(date == 20180215 |
+           date == 20180115)
+
+person <- inner_join(person, 
+                     interview,
+                     by = c("id" = "person_id"))
+get_fit_now_member <- inner_join(get_fit_now_member,
+                                 get_fit_now_check_in,
+                                 by = c("id" = "membership_id"))
+person <- inner_join(drivers_license,
+                     person,
+                     by = c("id" = "license_id"))
+person <- inner_join(income,
+                     person,
+                     by = "ssn")
 ```
+
 
 
 **Follow the evidence to the person responsible for the murder, building a report as you go.**
