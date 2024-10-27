@@ -58,24 +58,44 @@ Detective Wickham reaches out to you...
 #| label: inspecting-crime-scene-report
 crime_scene_report <- crime_scene_report |>
   filter(city == "SQL City",
-         type == "murder")
+         type == "murder",
+         date == 20180115)
 
-facebook_event_checkin <- facebook_event_checkin |>
-  filter(date == 20180215 |
-           date == 20180115)
+crime_scene_report$description
 
-person <- inner_join(person, 
-                     interview,
-                     by = c("id" = "person_id"))
-get_fit_now_member <- inner_join(get_fit_now_member,
+person_interview <- inner_join(person, 
+                               interview,
+                               by = join_by("id" == "person_id"))
+nw_interview <- person_interview |>
+  filter(address_street_name == "Northwestern Dr") |>
+  arrange(desc(address_number)) |>
+  slice(1)
+
+annabel_interview <- person_interview |>
+  filter(address_street_name == "Franklin Ave",
+         name == "Annabel Miller")
+
+nw_interview$transcript
+annabel_interview$transcript
+
+get_fit_now_member <- get_fit_now_member |>
+  filter(membership_status == "gold",
+         str_detect(id, "48Z."))
+
+get_fit_now_check_in <- get_fit_now_check_in |>
+  filter(check_in_date == 20180109)
+
+get_fit_now_member <- inner_join(get_fit_now_member, 
                                  get_fit_now_check_in,
-                                 by = c("id" = "membership_id"))
-person <- inner_join(drivers_license,
+                                 by = join_by("id" == "membership_id"))
+
+person <- inner_join(get_fit_now_member, 
                      person,
-                     by = c("id" = "license_id"))
-person <- inner_join(income,
-                     person,
-                     by = "ssn")
+                     by = join_by("person_id" == "id"))
+
+person <- inner_join(person,
+                     drivers_license,
+                     by = join_by("license_id" == "id"))
 ```
 
 
