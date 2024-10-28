@@ -56,46 +56,63 @@ Detective Wickham reaches out to you...
 
 ```{r}
 #| label: inspecting-crime-scene-report
-crime_scene_report <- crime_scene_report |>
+## Get the description of the crime as well as the description
+crime_scene_report |>
   filter(city == "SQL City",
          type == "murder",
-         date == 20180115)
+         date == 20180115) |>
+  pull(description)
 
-crime_scene_report$description
-
-person_interview <- inner_join(person, 
-                               interview,
-                               by = join_by("id" == "person_id"))
-nw_interview <- person_interview |>
+## First witness interview
+person |>
+  full_join(interview,
+            by = join_by("id" == "person_id")) |>
   filter(address_street_name == "Northwestern Dr") |>
   arrange(desc(address_number)) |>
-  slice(1)
+  slice(1) |>
+  pull(transcript)
 
-annabel_interview <- person_interview |>
+## Second witness interview
+person |>
+  full_join(interview,
+            by = join_by("id" == "person_id")) |>
   filter(address_street_name == "Franklin Ave",
-         name == "Annabel Miller")
+         name == "Annabel Miller") |>
+  pull(transcript)
 
-nw_interview$transcript
-annabel_interview$transcript
-
-get_fit_now_member <- get_fit_now_member |>
+## Find the suspect
+get_fit_now_member |>
+  full_join(get_fit_now_check_in,
+            by = join_by("id" == "membership_id")) |>
   filter(membership_status == "gold",
-         str_detect(id, "48Z."))
+         str_detect(id, "48Z."),
+         check_in_date == 20180109) |>
+  inner_join(person,
+            by = join_by("person_id" == "id")) |>
+  inner_join(drivers_license,
+             by = join_by("license_id" == "id"))
 
-get_fit_now_check_in <- get_fit_now_check_in |>
-  filter(check_in_date == 20180109)
+## Jeremy Bowers Interview
+person |> 
+  full_join(interview,
+            by = join_by("id" == "person_id")) |>
+  filter(name == "Jeremy Bowers") |>
+  pull(transcript)
 
-get_fit_now_member <- inner_join(get_fit_now_member, 
-                                 get_fit_now_check_in,
-                                 by = join_by("id" == "membership_id"))
-
-person <- inner_join(get_fit_now_member, 
-                     person,
-                     by = join_by("person_id" == "id"))
-
-person <- inner_join(person,
-                     drivers_license,
-                     by = join_by("license_id" == "id"))
+## Find the real culprit
+person |>
+  full_join(drivers_license,
+            by = join_by("license_id" == "id")) |>
+  full_join(facebook_event_checkin,
+            by = join_by("id" == "person_id")) |>
+  full_join(income,
+            by = join_by("ssn" == "ssn")) |>
+  filter(height == c(65:67),
+         hair_color == "red",
+         car_make == "Tesla",
+         car_model == "Model S",
+         str_detect(event_name, "SQL Symphony")) |>
+  pull(name)
 ```
 
 
@@ -106,4 +123,4 @@ Hint: Make sure you check for interviews with any suspects!
 
 ## And the final suspect is...
 
-*Put the name of the person responsible for the murder here:*
+*Miranda Priestly*
