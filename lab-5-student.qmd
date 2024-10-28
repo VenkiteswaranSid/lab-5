@@ -1,9 +1,21 @@
 ---
 title: "Lab 5: Murder in SQL City"
 author: "Siddharth Venkiteswaran"
-format: html
+format: 
+  html:  
+    embed-resources: true
+    code-tools: true
+    toc: true
+    toc-depth: 2
 editor: source
-embed-resources: true
+message: false
+warning: false
+code-fold: true
+theme: cyborg
+execute: 
+  echo: true
+  output: true
+  error: false
 ---
 
 For this lab, you will be joining and filtering related datasets to solve a murder mystery!
@@ -54,16 +66,21 @@ Detective Wickham reaches out to you...
 
 > A crime has taken place and I need your help! There was a murder in SQL City sometime on January 15, 2018. Could you retrieve the crime scene report from the police department’s database and follow the clues to find the person responsible for the murder?!
 
+### Inspecting the Crime Scene Report
+We must first get the crime scene report from the day that the crime took place in SQL City.
 ```{r}
 #| label: inspecting-crime-scene-report
-## Get the description of the crime as well as the description
 crime_scene_report |>
   filter(city == "SQL City",
          type == "murder",
          date == 20180115) |>
   pull(description)
+```
 
-## First witness interview
+### Checking the First Witness Interview
+To get an idea of who we are looking for, we must check the details of the interview with the first witness.
+```{r}
+#| label: first-witness-interview
 person |>
   full_join(interview,
             by = join_by("id" == "person_id")) |>
@@ -72,15 +89,24 @@ person |>
   slice(1) |>
   pull(transcript)
 
-## Second witness interview
+```
+
+### Checking the Second Witness Interview
+To get a more detailed description of who we are looking for, we must look through the details of the interview with the second witness.
+```{r}
+#| label: second-witness-interview
 person |>
   full_join(interview,
             by = join_by("id" == "person_id")) |>
   filter(address_street_name == "Franklin Ave",
          name == "Annabel Miller") |>
   pull(transcript)
+```
 
-## Find the suspect
+### Finding a Suspect
+With the information we have from the interviews, we need to find a suspect matching the given descriptions.
+```{r}
+#| label: find-a-suspect
 get_fit_now_member |>
   full_join(get_fit_now_check_in,
             by = join_by("id" == "membership_id")) |>
@@ -90,16 +116,25 @@ get_fit_now_member |>
   inner_join(person,
             by = join_by("person_id" == "id")) |>
   inner_join(drivers_license,
-             by = join_by("license_id" == "id"))
+             by = join_by("license_id" == "id")) |>
+  pull(name.x)
+```
 
-## Jeremy Bowers Interview
+### Interview with Jeremy Bowers
+We need to interview this suspect to see if he truly is the real culprit.
+```{r}
+#| label: jeremy-bowers-interview
 person |> 
   full_join(interview,
             by = join_by("id" == "person_id")) |>
   filter(name == "Jeremy Bowers") |>
   pull(transcript)
+```
 
-## Find the real culprit
+### Finding the Real Culprit
+With the information given to us in the previous interview, we should be able to find the actual person who is responsible for the crime.
+```{r}
+#| label: find-the-real-culprit
 person |>
   full_join(drivers_license,
             by = join_by("license_id" == "id")) |>
@@ -114,7 +149,6 @@ person |>
          str_detect(event_name, "SQL Symphony")) |>
   pull(name)
 ```
-
 
 
 **Follow the evidence to the person responsible for the murder, building a report as you go.**
